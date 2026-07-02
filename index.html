@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de senha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <section class="conteudo">
+        <div class="conteudo-titulo">
+            <img src="unlock.svg" alt="cadeado fechado" width="64" height="64">
+            <h2 class="titulo-principal">Gerador de senhas</h2>
+            <h3 class="titulo-secundario">Gere instantaneamente uma senha aleatória e segura</h3>
+        </div>
+
+        <div class="conteudo-senha">
+            <label for="senha">Senha</label>
+            <input name="senha" type="text" id="campo-senha" readonly>
+            <button id="copiar-senha" class="botao-copiar" title="Copiar senha">📋</button>
+        </div>
+
+        <div class="parametro">
+            <h3 class="parametro-titulo">Personalize sua senha</h3>
+            <div class="parametro-coluna__senha">
+                <!-- Número de caracteres -->
+                <div class="parametro-senha">
+                    <h4 class="parametro-senha__titulo">Número de caracteres</h4>
+                    <div class="parametro-senha-botoes">
+                        <button class="parametro-senha__botao" id="btn-diminuir">-</button>
+                        <p class="parametro-senha__texto" id="tamanho-senha">12</p>
+                        <button class="parametro-senha__botao" id="btn-aumentar">+</button>
+                    </div>
+                </div>
+
+                <!-- Características -->
+                <div class="parametro-senha">
+                    <h4 class="parametro-senha__titulo">Características da senha</h4>
+                    <div class="parametro-opcoes">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-maiusculas" checked>
+                            Maiúsculas (A-Z)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-minusculas" checked>
+                            Minúsculas (a-z)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-numeros" checked>
+                            Números (0-9)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="chk-especiais" checked>
+                            Especiais (!@#$%&*)
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Força da senha -->
+                <div class="parametro-senha">
+                    <h4 class="parametro-senha__titulo">Força da senha</h4>
+                    <div class="forca-senha">
+                        <div class="barra-forca">
+                            <div id="indicador-forca" class="indicador-forca" style="width: 0%;"></div>
+                        </div>
+                        <p id="texto-forca" class="texto-forca">Fraca</p>
+                    </div>
+                </div>
+            </div>
+
+            <button id="btn-gerar" class="botao-gerar">🔒 Gerar Nova Senha</button>
+        </div>
+    </section>
+
+    <script>
+        // Elementos do DOM
+        const campoSenha = document.getElementById('campo-senha');
+        const tamanhoSenha = document.getElementById('tamanho-senha');
+        const btnDiminuir = document.getElementById('btn-diminuir');
+        const btnAumentar = document.getElementById('btn-aumentar');
+        const btnGerar = document.getElementById('btn-gerar');
+        const btnCopiar = document.getElementById('copiar-senha');
+
+        const chkMaiusculas = document.getElementById('chk-maiusculas');
+        const chkMinusculas = document.getElementById('chk-minusculas');
+        const chkNumeros = document.getElementById('chk-numeros');
+        const chkEspeciais = document.getElementById('chk-especiais');
+
+        const indicadorForca = document.getElementById('indicador-forca');
+        const textoForca = document.getElementById('texto-forca');
+
+        let tamanho = 12;
+
+        // Conjuntos de caracteres
+        const MAIUSCULAS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const MINUSCULAS = 'abcdefghijklmnopqrstuvwxyz';
+        const NUMEROS = '0123456789';
+        const ESPECIAIS = '!@#$%&*()_+-=[]{}|;:,.<>?';
+
+        // Função para gerar senha
+        function gerarSenha() {
+            let caracteres = '';
+
+            if (chkMaiusculas.checked) caracteres += MAIUSCULAS;
+            if (chkMinusculas.checked) caracteres += MINUSCULAS;
+            if (chkNumeros.checked) caracteres += NUMEROS;
+            if (chkEspeciais.checked) caracteres += ESPECIAIS;
+
+            if (caracteres === '') {
+                campoSenha.value = 'Selecione pelo menos uma opção';
+                return '';
+            }
+
+            let senha = '';
+            for (let i = 0; i < tamanho; i++) {
+                const indiceAleatorio = Math.floor(Math.random() * caracteres.length);
+                senha += caracteres[indiceAleatorio];
+            }
+
+            return senha;
+        }
+
+        // Função para atualizar a senha e a força
+        function atualizarSenha() {
+            const senha = gerarSenha();
+            if (senha) {
+                campoSenha.value = senha;
+                atualizarForca(senha);
+            }
+        }
+
+        // Função para calcular a força da senha
+        function atualizarForca(senha) {
+            let forca = 0;
+            let tipos = 0;
+
+            if (/[A-Z]/.test(senha)) tipos++;
+            if (/[a-z]/.test(senha)) tipos++;
+            if (/[0-9]/.test(senha)) tipos++;
+            if (/[^A-Za-z0-9]/.test(senha)) tipos++;
+
+            // Quanto mais tipos, mais forte
+            forca += tipos * 25;
+
+            // Tamanho também influencia
+            if (senha.length >= 12) forca += 20;
+            else if (senha.length >= 8) forca += 10;
+            else if (senha.length >= 6) forca += 5;
+
+            // Limita a 100%
+            forca = Math.min(forca, 100);
+
+            indicadorForca.style.width = forca + '%';
+
+            if (forca >= 80) {
+                textoForca.textContent = '💪 Forte';
+                textoForca.style.color = '#4CAF50';
+                indicadorForca.style.background = '#4CAF50';
+            } else if (forca >= 50) {
+                textoForca.textContent = '👍 Média';
+                textoForca.style.color = '#FFC107';
+                indicadorForca.style.background = '#FFC107';
+            } else {
+                textoForca.textContent = '⚠️ Fraca';
+                textoForca.style.color = '#FF6584';
+                indicadorForca.style.background = '#FF6584';
+            }
+        }
+
+        // Eventos dos botões de tamanho
+        btnDiminuir.addEventListener('click', () => {
+            if (tamanho > 4) {
+                tamanho--;
+                tamanhoSenha.textContent = tamanho;
+                atualizarSenha();
+            }
+        });
+
+        btnAumentar.addEventListener('click', () => {
+            if (tamanho < 32) {
+                tamanho++;
+                tamanhoSenha.textContent = tamanho;
+                atualizarSenha();
+            }
+        });
+
+        // Evento de gerar senha
+        btnGerar.addEventListener('click', atualizarSenha);
+
+        // Evento de copiar senha
+        btnCopiar.addEventListener('click', async () => {
+            const senha = campoSenha.value;
+            if (senha && senha !== 'Selecione pelo menos uma opção') {
+                try {
+                    await navigator.clipboard.writeText(senha);
+                    btnCopiar.textContent = '✅';
+                    setTimeout(() => {
+                        btnCopiar.textContent = '📋';
+                    }, 2000);
+                } catch (err) {
+                    alert('Não foi possível copiar a senha');
+                }
+            }
+        });
+
+        // Eventos das checkboxes
+        chkMaiusculas.addEventListener('change', atualizarSenha);
+        chkMinusculas.addEventListener('change', atualizarSenha);
+        chkNumeros.addEventListener('change', atualizarSenha);
+        chkEspeciais.addEventListener('change', atualizarSenha);
+
+        // Gerar senha inicial
+        atualizarSenha();
+    </script>
+</body>
+
+</html>
